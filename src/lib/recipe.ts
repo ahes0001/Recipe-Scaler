@@ -2,7 +2,7 @@
  * Recipe data and scaling logic for the Bukhari Spice Calculator.
  *
  * Base recipe is defined for 3 kg of lamb. All ingredient weights are in grams.
- * scaled_amount = base_amount * (lamb_kg / 3) * ratio
+ * scaled_amount = custom_base_amount * (lamb_kg / 3)
  */
 
 export interface Ingredient {
@@ -27,27 +27,28 @@ export const INGREDIENTS: Ingredient[] = [
   { key: "large_chilies", label: "Large Chilies (total)", baseAmount: 150, unit: "g" },
 ];
 
-/** Build a default ratios map where every ingredient starts at 1.0 */
-export function getDefaultRatios(): Record<string, number> {
-  const ratios: Record<string, number> = {};
+/** Build a map of the original base amounts (in grams) for every ingredient. */
+export function getDefaultBaseAmounts(): Record<string, number> {
+  const amounts: Record<string, number> = {};
   for (const ing of INGREDIENTS) {
-    ratios[ing.key] = 1.0;
+    amounts[ing.key] = ing.baseAmount;
   }
-  return ratios;
+  return amounts;
 }
 
-/** Scale a single ingredient amount based on lamb kg and its custom ratio. */
+/** Scale a single ingredient amount based on lamb kg and its custom base amount. */
 export function scaleIngredient(
   ingredient: Ingredient,
   lambKg: number,
-  ratio: number
+  customBaseAmount: number
 ): number {
   if (lambKg <= 0 || !isFinite(lambKg)) return 0;
-  return ingredient.baseAmount * (lambKg / BASE_LAMB_KG) * ratio;
+  return customBaseAmount * (lambKg / BASE_LAMB_KG);
 }
 
 /** Format a number to a sensible precision for cooking (max 1 decimal). */
 export function formatAmount(value: number): string {
   const rounded = Math.round(value * 10) / 10;
+  // Remove trailing .0 for whole numbers
   return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
 }

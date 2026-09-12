@@ -9,12 +9,12 @@ import { cn } from "@/lib/utils";
 interface SettingsPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  ratios: Record<string, number>;
-  onChangeRatio: (key: string, value: number) => void;
+  baseAmounts: Record<string, number>;
+  onChangeBaseAmount: (key: string, value: number) => void;
   onReset: () => void;
 }
 
-export default function SettingsPanel({ isOpen, onClose, ratios, onChangeRatio, onReset }: SettingsPanelProps) {
+export default function SettingsPanel({ isOpen, onClose, baseAmounts, onChangeBaseAmount, onReset }: SettingsPanelProps) {
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export default function SettingsPanel({ isOpen, onClose, ratios, onChangeRatio, 
   }, [isOpen]);
 
   const inputClass = cn(
-    "w-24 rounded-lg border px-3 py-2 text-sm font-medium text-right tabular-nums outline-none transition-colors",
+    "w-28 rounded-lg border px-3 py-2 text-sm font-medium text-right tabular-nums outline-none transition-colors",
     "bg-stone-50 border-stone-300 text-stone-800",
     "focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20",
     "dark:bg-stone-800 dark:border-stone-700 dark:text-stone-100",
@@ -80,7 +80,7 @@ export default function SettingsPanel({ isOpen, onClose, ratios, onChangeRatio, 
             )}
           >
             <div className="flex items-center justify-between mb-5">
-              <h2 id="settings-title" className="text-xl font-bold text-stone-800 dark:text-stone-100">Recipe Ratios</h2>
+              <h2 id="settings-title" className="text-xl font-bold text-stone-800 dark:text-stone-100">Base Recipe Amounts</h2>
               <button
                 onClick={onClose}
                 className={cn("rounded-lg p-2 transition-colors text-stone-500 hover:bg-stone-100", "dark:text-stone-400 dark:hover:bg-stone-800")}
@@ -91,22 +91,25 @@ export default function SettingsPanel({ isOpen, onClose, ratios, onChangeRatio, 
               </button>
             </div>
             <p className="text-sm text-stone-500 dark:text-stone-400 mb-4">
-              Fine-tune how much of each ingredient is used relative to the base recipe. A value of 1.0 keeps the original proportions.
+              Adjust the base recipe amounts (for 3 kg of lamb). The calculator will scale these values proportionally based on the lamb weight you enter.
             </p>
             <div className="max-h-[60vh] overflow-y-auto pr-1 space-y-3">
               {INGREDIENTS.map((ing) => (
                 <div key={ing.key} className="flex items-center justify-between gap-4">
-                  <label htmlFor={`ratio-${ing.key}`} className="text-sm font-medium text-stone-700 dark:text-stone-200">{ing.label}</label>
-                  <input
-                    id={`ratio-${ing.key}`}
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    value={ratios[ing.key] ?? 1}
-                    onChange={(e) => onChangeRatio(ing.key, parseFloat(e.target.value))}
-                    className={inputClass}
-                    aria-label={`${ing.label} ratio`}
-                  />
+                  <label htmlFor={`amount-${ing.key}`} className="text-sm font-medium text-stone-700 dark:text-stone-200">{ing.label}</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      id={`amount-${ing.key}`}
+                      type="number"
+                      step="1"
+                      min="0"
+                      value={baseAmounts[ing.key] ?? ing.baseAmount}
+                      onChange={(e) => onChangeBaseAmount(ing.key, parseFloat(e.target.value))}
+                      className={inputClass}
+                      aria-label={`${ing.label} base amount in grams`}
+                    />
+                    <span className="text-sm text-stone-500 dark:text-stone-400 w-6">{ing.unit}</span>
+                  </div>
                 </div>
               ))}
             </div>

@@ -4,11 +4,11 @@ import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Calculator as CalcIcon, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getDefaultRatios } from "@/lib/recipe";
+import { getDefaultBaseAmounts } from "@/lib/recipe";
 import IngredientList from "./IngredientList";
 import SettingsPanel from "./SettingsPanel";
 
-const RATIOS_STORAGE_KEY = "bukhari-ratios-v1";
+const BASE_AMOUNTS_STORAGE_KEY = "bukhari-base-amounts-v1";
 const LAMB_STORAGE_KEY = "bukhari-lamb-kg-v1";
 
 interface CalculatorProps {
@@ -23,21 +23,21 @@ export default function Calculator({ settingsOpen, onCloseSettings }: Calculator
     }
     return "";
   });
-  const [ratios, setRatios] = useState<Record<string, number>>(() => {
+  const [baseAmounts, setBaseAmounts] = useState<Record<string, number>>(() => {
     if (typeof window !== "undefined") {
       try {
-        const saved = localStorage.getItem(RATIOS_STORAGE_KEY);
+        const saved = localStorage.getItem(BASE_AMOUNTS_STORAGE_KEY);
         if (saved) return JSON.parse(saved);
       } catch {}
     }
-    return getDefaultRatios();
+    return getDefaultBaseAmounts();
   });
 
   useEffect(() => {
     try {
-      localStorage.setItem(RATIOS_STORAGE_KEY, JSON.stringify(ratios));
+      localStorage.setItem(BASE_AMOUNTS_STORAGE_KEY, JSON.stringify(baseAmounts));
     } catch {}
-  }, [ratios]);
+  }, [baseAmounts]);
 
   useEffect(() => {
     try {
@@ -48,12 +48,12 @@ export default function Calculator({ settingsOpen, onCloseSettings }: Calculator
   const parsedLamb = parseFloat(lambKg);
   const isValid = !isNaN(parsedLamb) && parsedLamb > 0 && isFinite(parsedLamb);
 
-  const handleChangeRatio = useCallback((key: string, value: number) => {
-    setRatios((prev) => ({ ...prev, [key]: isNaN(value) || value < 0 ? 0 : value }));
+  const handleChangeBaseAmount = useCallback((key: string, value: number) => {
+    setBaseAmounts((prev) => ({ ...prev, [key]: isNaN(value) || value < 0 ? 0 : value }));
   }, []);
 
   const handleReset = useCallback(() => {
-    setRatios(getDefaultRatios());
+    setBaseAmounts(getDefaultBaseAmounts());
   }, []);
 
   return (
@@ -112,7 +112,7 @@ export default function Calculator({ settingsOpen, onCloseSettings }: Calculator
               <ArrowRight className="h-4 w-4 text-amber-600 dark:text-amber-500" aria-hidden="true" />
               Scaled ingredients for {parsedLamb} kg lamb
             </div>
-            <IngredientList lambKg={parsedLamb} ratios={ratios} />
+            <IngredientList lambKg={parsedLamb} baseAmounts={baseAmounts} />
           </motion.div>
         ) : (
           <div className="rounded-xl border border-dashed border-stone-300 bg-stone-50 p-8 text-center dark:border-stone-700 dark:bg-stone-800/50">
@@ -126,8 +126,8 @@ export default function Calculator({ settingsOpen, onCloseSettings }: Calculator
       <SettingsPanel
         isOpen={settingsOpen}
         onClose={onCloseSettings}
-        ratios={ratios}
-        onChangeRatio={handleChangeRatio}
+        baseAmounts={baseAmounts}
+        onChangeBaseAmount={handleChangeBaseAmount}
         onReset={handleReset}
       />
     </section>

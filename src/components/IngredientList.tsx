@@ -5,14 +5,14 @@ import IngredientItem from "./IngredientItem";
 
 interface IngredientListProps {
   lambKg: number;
-  ratios: Record<string, number>;
+  baseAmounts: Record<string, number>;
 }
 
-export default function IngredientList({ lambKg, ratios }: IngredientListProps) {
+export default function IngredientList({ lambKg, baseAmounts }: IngredientListProps) {
   return (
     <section aria-label="Scaled ingredients" className="space-y-2">
       {INGREDIENTS.map((ing, idx) => {
-        const amount = scaleIngredient(ing, lambKg, ratios[ing.key] ?? 1);
+        const amount = scaleIngredient(ing, lambKg, baseAmounts[ing.key] ?? ing.baseAmount);
         return (
           <IngredientItem
             key={ing.key}
