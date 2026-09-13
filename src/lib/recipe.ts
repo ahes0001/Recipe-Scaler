@@ -15,16 +15,17 @@ export interface Ingredient {
 export const BASE_LAMB_KG = 3;
 
 export const INGREDIENTS: Ingredient[] = [
-  { key: "lamb", label: "Lamb", baseAmount: 3000, unit: "g" },
-  { key: "carrot", label: "Carrot", baseAmount: 500, unit: "g" },
+  { key: "Whole Lamb", label: "Lamb", baseAmount: 3000, unit: "g" },
+  { key: "carrot", label: "Carrot", baseAmount: 600, unit: "g" },
   { key: "tomatoes", label: "Tomatoes", baseAmount: 750, unit: "g" },
   { key: "tomato_paste", label: "Tomato Paste", baseAmount: 50, unit: "g" },
-  { key: "chick_peas", label: "Chick Peas", baseAmount: 400, unit: "g" },
-  { key: "black_raisins", label: "Black Raisins", baseAmount: 400, unit: "g" },
-  { key: "slivered_onions", label: "Slivered Onions", baseAmount: 400, unit: "g" },
+  { key: "dried_chick_peas", label: "Dried Chick Peas", baseAmount: 250, unit: "g" },
+  { key: "black_raisins", label: "Black Raisins", baseAmount: 250, unit: "g" },
+  { key: "slivered_onions", label: "Slivered Onions", baseAmount: 250, unit: "g" },
   { key: "ground_cumin", label: "Ground Cumin", baseAmount: 18, unit: "g" },
-  { key: "big_onions", label: "Big Onions (total)", baseAmount: 500, unit: "g" },
+  { key: "big_onions", label: "Big Onions (total)", baseAmount: 650, unit: "g" },
   { key: "large_chilies", label: "Large Chilies (total)", baseAmount: 150, unit: "g" },
+  { key: "lamb_tallow", label: "Lamb Tallow", baseAmount: 0.6, unit: "cups" },
 ];
 
 /** Build a map of the original base amounts (in grams) for every ingredient. */
