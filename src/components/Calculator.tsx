@@ -4,11 +4,13 @@ import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Calculator as CalcIcon, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getDefaultBaseAmounts } from "@/lib/recipe";
+import { getDefaultBaseAmounts, getDefaultCosts } from "@/lib/recipe";
 import IngredientList from "./IngredientList";
 import SettingsPanel from "./SettingsPanel";
 
 const BASE_AMOUNTS_STORAGE_KEY = "bukhari-base-amounts-v1";
+const COSTS_STORAGE_KEY = "bukhari-costs-v1";
+const CALCULATE_COSTS_STORAGE_KEY = "bukhari-calculate-costs-v1";
 const LAMB_STORAGE_KEY = "bukhari-lamb-kg-v1";
 
 interface CalculatorProps {
@@ -32,12 +34,40 @@ export default function Calculator({ settingsOpen, onCloseSettings }: Calculator
     }
     return getDefaultBaseAmounts();
   });
+  const [costs, setCosts] = useState<Record<string, number>>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem(COSTS_STORAGE_KEY);
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return getDefaultCosts();
+  });
+  const [calculateCosts, setCalculateCosts] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(CALCULATE_COSTS_STORAGE_KEY);
+      return saved === "true";
+    }
+    return false;
+  });
 
   useEffect(() => {
     try {
       localStorage.setItem(BASE_AMOUNTS_STORAGE_KEY, JSON.stringify(baseAmounts));
     } catch {}
   }, [baseAmounts]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(COSTS_STORAGE_KEY, JSON.stringify(costs));
+    } catch {}
+  }, [costs]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(CALCULATE_COSTS_STORAGE_KEY, String(calculateCosts));
+    } catch {}
+  }, [calculateCosts]);
 
   useEffect(() => {
     try {
@@ -52,8 +82,13 @@ export default function Calculator({ settingsOpen, onCloseSettings }: Calculator
     setBaseAmounts((prev) => ({ ...prev, [key]: isNaN(value) || value < 0 ? 0 : value }));
   }, []);
 
+  const handleChangeCost = useCallback((key: string, value: number) => {
+    setCosts((prev) => ({ ...prev, [key]: isNaN(value) || value < 0 ? 0 : value }));
+  }, []);
+
   const handleReset = useCallback(() => {
     setBaseAmounts(getDefaultBaseAmounts());
+    setCosts(getDefaultCosts());
   }, []);
 
   return (
@@ -112,7 +147,12 @@ export default function Calculator({ settingsOpen, onCloseSettings }: Calculator
               <ArrowRight className="h-4 w-4 text-amber-600 dark:text-amber-500" aria-hidden="true" />
               Scaled ingredients for {parsedLamb} kg lamb
             </div>
-            <IngredientList lambKg={parsedLamb} baseAmounts={baseAmounts} />
+            <IngredientList
+              lambKg={parsedLamb}
+              baseAmounts={baseAmounts}
+              costs={costs}
+              calculateCosts={calculateCosts}
+            />
           </motion.div>
         ) : (
           <div className="rounded-xl border border-dashed border-stone-300 bg-stone-50 p-8 text-center dark:border-stone-700 dark:bg-stone-800/50">
@@ -128,6 +168,10 @@ export default function Calculator({ settingsOpen, onCloseSettings }: Calculator
         onClose={onCloseSettings}
         baseAmounts={baseAmounts}
         onChangeBaseAmount={handleChangeBaseAmount}
+        costs={costs}
+        onChangeCost={handleChangeCost}
+        calculateCosts={calculateCosts}
+        onToggleCalculateCosts={() => setCalculateCosts((v) => !v)}
         onReset={handleReset}
       />
     </section>

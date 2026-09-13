@@ -11,10 +11,24 @@ interface SettingsPanelProps {
   onClose: () => void;
   baseAmounts: Record<string, number>;
   onChangeBaseAmount: (key: string, value: number) => void;
+  costs: Record<string, number>;
+  onChangeCost: (key: string, value: number) => void;
+  calculateCosts: boolean;
+  onToggleCalculateCosts: () => void;
   onReset: () => void;
 }
 
-export default function SettingsPanel({ isOpen, onClose, baseAmounts, onChangeBaseAmount, onReset }: SettingsPanelProps) {
+export default function SettingsPanel({
+  isOpen,
+  onClose,
+  baseAmounts,
+  onChangeBaseAmount,
+  costs,
+  onChangeCost,
+  calculateCosts,
+  onToggleCalculateCosts,
+  onReset,
+}: SettingsPanelProps) {
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -52,6 +66,18 @@ export default function SettingsPanel({ isOpen, onClose, baseAmounts, onChangeBa
     "dark:focus:border-amber-500 dark:focus:ring-amber-500/20"
   );
 
+  const toggleClass = (active: boolean) =>
+    cn(
+      "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
+      active ? "bg-amber-600" : "bg-stone-300 dark:bg-stone-600"
+    );
+
+  const knobClass = (active: boolean) =>
+    cn(
+      "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+      active ? "translate-x-6" : "translate-x-1"
+    );
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -75,12 +101,14 @@ export default function SettingsPanel({ isOpen, onClose, baseAmounts, onChangeBa
             aria-modal="true"
             aria-labelledby="settings-title"
             className={cn(
-              "fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-2xl p-6 shadow-2xl",
+              "fixed left-1/2 top-1/2 z-50 w-full max-w-xl -translate-x-1/2 -translate-y-1/2 rounded-2xl p-6 shadow-2xl",
               "bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800"
             )}
           >
             <div className="flex items-center justify-between mb-5">
-              <h2 id="settings-title" className="text-xl font-bold text-stone-800 dark:text-stone-100">Base Recipe Amounts</h2>
+              <h2 id="settings-title" className="text-xl font-bold text-stone-800 dark:text-stone-100">
+                Recipe Settings
+              </h2>
               <button
                 onClick={onClose}
                 className={cn("rounded-lg p-2 transition-colors text-stone-500 hover:bg-stone-100", "dark:text-stone-400 dark:hover:bg-stone-800")}
@@ -90,29 +118,74 @@ export default function SettingsPanel({ isOpen, onClose, baseAmounts, onChangeBa
                 <X className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
+
+            {/* Toggle: Calculate costs */}
+            <div className="flex items-center justify-between mb-5 rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 dark:border-stone-700 dark:bg-stone-800">
+              <span className="text-sm font-semibold text-stone-700 dark:text-stone-200">
+                Calculate costs
+              </span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={calculateCosts}
+                onClick={onToggleCalculateCosts}
+                className={toggleClass(calculateCosts)}
+              >
+                <span className={knobClass(calculateCosts)} />
+              </button>
+            </div>
+
             <p className="text-sm text-stone-500 dark:text-stone-400 mb-4">
-              Adjust the base recipe amounts (for 3 kg of lamb). The calculator will scale these values proportionally based on the lamb weight you enter.
+              Adjust the base recipe amounts (for 3 kg of lamb). The calculator scales these proportionally.
+              {calculateCosts && " Cost-per-kg fields are shown below each ingredient."}
             </p>
-            <div className="max-h-[60vh] overflow-y-auto pr-1 space-y-3">
+
+            <div className="max-h-[55vh] overflow-y-auto pr-1 space-y-4">
               {INGREDIENTS.map((ing) => (
-                <div key={ing.key} className="flex items-center justify-between gap-4">
-                  <label htmlFor={`amount-${ing.key}`} className="text-sm font-medium text-stone-700 dark:text-stone-200">{ing.label}</label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      id={`amount-${ing.key}`}
-                      type="number"
-                      step="1"
-                      min="0"
-                      value={baseAmounts[ing.key] ?? ing.baseAmount}
-                      onChange={(e) => onChangeBaseAmount(ing.key, parseFloat(e.target.value))}
-                      className={inputClass}
-                      aria-label={`${ing.label} base amount in grams`}
-                    />
-                    <span className="text-sm text-stone-500 dark:text-stone-400 w-6">{ing.unit}</span>
+                <div key={ing.key} className="rounded-lg border border-stone-100 p-3 dark:border-stone-800">
+                  <div className="flex items-center justify-between gap-4 mb-2">
+                    <label htmlFor={`amount-${ing.key}`} className="text-sm font-medium text-stone-700 dark:text-stone-200">
+                      {ing.label}
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        id={`amount-${ing.key}`}
+                        type="number"
+                        step="1"
+                        min="0"
+                        value={baseAmounts[ing.key] ?? ing.baseAmount}
+                        onChange={(e) => onChangeBaseAmount(ing.key, parseFloat(e.target.value))}
+                        className={inputClass}
+                        aria-label={`${ing.label} base amount`}
+                      />
+                      <span className="text-sm text-stone-500 dark:text-stone-400 w-8">{ing.unit}</span>
+                    </div>
                   </div>
+
+                  {calculateCosts && (
+                    <div className="flex items-center justify-between gap-4 pl-4 border-l-2 border-emerald-200 dark:border-emerald-800">
+                      <label htmlFor={`cost-${ing.key}`} className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                        Cost per kg
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-stone-500 dark:text-stone-400">$</span>
+                        <input
+                          id={`cost-${ing.key}`}
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          value={costs[ing.key] ?? ing.defaultCostPerKg}
+                          onChange={(e) => onChangeCost(ing.key, parseFloat(e.target.value))}
+                          className={cn(inputClass, "w-24")}
+                          aria-label={`${ing.label} cost per kilogram`}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
+
             <div className="mt-6 flex items-center justify-between gap-3">
               <button
                 onClick={onReset}
