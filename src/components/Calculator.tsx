@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { motion } from "framer-motion";
-import { Calculator as CalcIcon, ArrowRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Calculator as CalcIcon, ArrowRight, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getDefaultBaseAmounts, getDefaultCosts, INGREDIENTS } from "@/lib/recipe";
 import IngredientList, { type CustomIngredient } from "./IngredientList";
@@ -85,6 +85,7 @@ export default function Calculator({ settingsOpen, onCloseSettings }: Calculator
     }
     return [];
   });
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   useEffect(() => {
     try { localStorage.setItem(REFERENCE_KEY_STORAGE_KEY, referenceKey); } catch {}
@@ -115,7 +116,7 @@ export default function Calculator({ settingsOpen, onCloseSettings }: Calculator
   }, [deletedDefaults]);
 
   useEffect(() => {
-    if (referenceKey === "lamb") return;
+    if (!referenceKey || referenceKey === "lamb") return;
     const customExists = customIngredients.some((c) => c.id === referenceKey);
     const defaultExists = INGREDIENTS.some((i) => i.key === referenceKey && !deletedDefaults.includes(i.key));
     if (!customExists && !defaultExists) {
@@ -135,7 +136,7 @@ export default function Calculator({ settingsOpen, onCloseSettings }: Calculator
   const refDisplay = parseFloat(referenceInput);
   const refGrams = referenceKey === "lamb" ? refDisplay * 1000 : refDisplay;
   const scaleFactor = !isNaN(refGrams) && refGrams > 0 && refBase > 0 ? refGrams / refBase : 0;
-  const isValid = scaleFactor > 0;
+  const isValid = scaleFactor > 0 && !!referenceKey;
 
   const referenceDef = INGREDIENTS.find((i) => i.key === referenceKey);
   const referenceCustom = customIngredients.find((c) => c.id === referenceKey);
@@ -172,6 +173,14 @@ export default function Calculator({ settingsOpen, onCloseSettings }: Calculator
 
   const handleDeleteDefault = useCallback((key: string) => {
     setDeletedDefaults((prev) => [...prev, key]);
+  }, []);
+
+  const handleClearIngredients = useCallback(() => {
+    setCustomIngredients([]);
+    setDeletedDefaults(INGREDIENTS.map((i) => i.key));
+    setReferenceKey("");
+    setReferenceInput("");
+    setShowClearConfirm(false);
   }, []);
 
   const handleSetReference = useCallback((key: string) => {
@@ -211,78 +220,109 @@ export default function Calculator({ settingsOpen, onCloseSettings }: Calculator
   return (
     <section className="mx-auto w-full max-w-2xl px-4 py-10">
       <div className={cn("rounded-3xl border p-6 shadow-xl sm:p-8", "bg-white/90 border-stone-200", "dark:bg-stone-900/90 dark:border-stone-800")}>
-        <div className="mb-6 flex items-center gap-3">
-          <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl", "bg-amber-100 text-amber-700", "dark:bg-amber-900/40 dark:text-amber-400")}>
-            <CalcIcon className="h-5 w-5" aria-hidden="true" />
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl", "bg-amber-100 text-amber-700", "dark:bg-amber-900/40 dark:text-amber-400")}>
+              <CalcIcon className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-stone-800 dark:text-stone-100">
+                Receipe Calculator
+              </h1>
+              <p className="text-sm text-stone-500 dark:text-stone-400">
+                Scale ANY recipe you find by your preferred ingredient.
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-stone-800 dark:text-stone-100">
-              Receipe Calculator
-            </h1>
-            <p className="text-sm text-stone-500 dark:text-stone-400">
-              Scale ANY recipe you find by your preferred ingredient.
+          <button
+            onClick={() => setShowClearConfirm(true)}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              "text-red-700 bg-red-50 hover:bg-red-100",
+              "dark:text-red-400 dark:bg-red-900/20 dark:hover:bg-red-900/30"
+            )}
+            type="button"
+          >
+            <Trash2 className="h-4 w-4" />
+            Clear Ingredients
+          </button>
+        </div>
+
+        {referenceKey ? (
+          <div className="mb-6">
+            <label htmlFor="ref-input" className="mb-2 block text-sm font-semibold text-stone-700 dark:text-stone-200">
+              {displayLabel}
+            </label>
+            <div className="flex items-center gap-3">
+              <input
+                id="ref-input"
+                type="number"
+                min="0"
+                step={isLambReference ? "0.1" : "1"}
+                placeholder={isLambReference ? "3" : String(Math.round(getBaseAmount(referenceKey)))}
+                value={displayValue}
+                onChange={(e) => setReferenceInput(e.target.value)}
+                className={cn(
+                  "w-full rounded-xl border px-4 py-3 text-lg font-semibold outline-none transition-colors",
+                  "bg-stone-50 border-stone-300 text-stone-800 placeholder:text-stone-400",
+                  "focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10",
+                  "dark:bg-stone-800 dark:border-stone-700 dark:text-stone-100 dark:placeholder:text-stone-500",
+                  "dark:focus:border-amber-500 dark:focus:ring-amber-500/10"
+                )}
+                aria-describedby="ref-hint"
+              />
+              <span className="text-sm font-medium text-stone-500 dark:text-stone-400">{displayUnit}</span>
+            </div>
+            <p id="ref-hint" className="mt-2 text-xs text-stone-500 dark:text-stone-400">
+              {displayHint}
             </p>
           </div>
-        </div>
-
-        <div className="mb-6">
-          <label htmlFor="ref-input" className="mb-2 block text-sm font-semibold text-stone-700 dark:text-stone-200">
-            {displayLabel}
-          </label>
-          <div className="flex items-center gap-3">
-            <input
-              id="ref-input"
-              type="number"
-              min="0"
-              step={isLambReference ? "0.1" : "1"}
-              placeholder={isLambReference ? "3" : String(Math.round(getBaseAmount(referenceKey)))}
-              value={displayValue}
-              onChange={(e) => setReferenceInput(e.target.value)}
-              className={cn(
-                "w-full rounded-xl border px-4 py-3 text-lg font-semibold outline-none transition-colors",
-                "bg-stone-50 border-stone-300 text-stone-800 placeholder:text-stone-400",
-                "focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10",
-                "dark:bg-stone-800 dark:border-stone-700 dark:text-stone-100 dark:placeholder:text-stone-500",
-                "dark:focus:border-amber-500 dark:focus:ring-amber-500/10"
-              )}
-              aria-describedby="ref-hint"
-            />
-            <span className="text-sm font-medium text-stone-500 dark:text-stone-400">{displayUnit}</span>
-          </div>
-          <p id="ref-hint" className="mt-2 text-xs text-stone-500 dark:text-stone-400">
-            {displayHint}
-          </p>
-        </div>
-
-        {isValid ? (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35 }}
-          >
-            <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-stone-700 dark:text-stone-200">
-              <ArrowRight className="h-4 w-4 text-amber-600 dark:text-amber-500" aria-hidden="true" />
-              Scaled ingredients
-            </div>
-            <IngredientList
-              scaleFactor={scaleFactor}
-              baseAmounts={baseAmounts}
-              costs={costs}
-              calculateCosts={calculateCosts}
-              customIngredients={customIngredients}
-              onAddCustomIngredient={handleAddCustom}
-              deletedDefaults={deletedDefaults}
-              referenceKey={referenceKey}
-              onSetReference={handleSetReference}
-            />
-          </motion.div>
         ) : (
-          <div className="rounded-xl border border-dashed border-stone-300 bg-stone-50 p-8 text-center dark:border-stone-700 dark:bg-stone-800/50">
-            <p className="text-sm text-stone-500 dark:text-stone-400">
-              Enter a positive {displayLabel.toLowerCase()} above to see scaled ingredients.
+          <div className="mb-6 rounded-xl border border-dashed border-stone-300 bg-stone-50 p-6 text-center dark:border-stone-700 dark:bg-stone-800/50">
+            <p className="text-sm font-medium text-stone-600 dark:text-stone-300">
+              No reference ingredient selected
+            </p>
+            <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
+              Add ingredients below and click one to set it as your reference for scaling.
             </p>
           </div>
         )}
+
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35 }}
+        >
+          <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-stone-700 dark:text-stone-200">
+            <ArrowRight className="h-4 w-4 text-amber-600 dark:text-amber-500" aria-hidden="true" />
+            {referenceKey ? "Scaled ingredients" : "Ingredients"}
+          </div>
+          <IngredientList
+            scaleFactor={isValid ? scaleFactor : 0}
+            baseAmounts={baseAmounts}
+            costs={costs}
+            calculateCosts={calculateCosts}
+            customIngredients={customIngredients}
+            onAddCustomIngredient={handleAddCustom}
+            deletedDefaults={deletedDefaults}
+            referenceKey={referenceKey}
+            onSetReference={handleSetReference}
+          />
+          {referenceKey && !isValid && (
+            <div className="mt-4 rounded-xl border border-dashed border-stone-300 bg-stone-50 p-8 text-center dark:border-stone-700 dark:bg-stone-800/50">
+              <p className="text-sm text-stone-500 dark:text-stone-400">
+                Enter a positive {displayLabel.toLowerCase()} above to see scaled ingredients.
+              </p>
+            </div>
+          )}
+          {!referenceKey && (
+            <div className="mt-4 rounded-xl border border-dashed border-stone-300 bg-stone-50 p-8 text-center dark:border-stone-700 dark:bg-stone-800/50">
+              <p className="text-sm text-stone-500 dark:text-stone-400">
+                Click an ingredient above to set it as your reference, then enter an amount to scale.
+              </p>
+            </div>
+          )}
+        </motion.div>
       </div>
 
       <SettingsPanel
@@ -303,6 +343,68 @@ export default function Calculator({ settingsOpen, onCloseSettings }: Calculator
         onDeleteDefaultIngredient={handleDeleteDefault}
         referenceKey={referenceKey}
       />
+
+      {/* Clear Ingredients Confirmation */}
+      <AnimatePresence>
+        {showClearConfirm && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
+              onClick={() => setShowClearConfirm(false)}
+              aria-hidden="true"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 10 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="clear-title"
+              className={cn(
+                "fixed left-1/2 top-1/2 z-50 w-[90vw] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl border p-6 shadow-2xl",
+                "bg-white border-stone-200",
+                "dark:bg-stone-900 dark:border-stone-800"
+              )}
+            >
+              <h2 id="clear-title" className="text-lg font-bold text-stone-800 dark:text-stone-100 mb-2">
+                Clear all ingredients?
+              </h2>
+              <p className="text-sm text-stone-500 dark:text-stone-400 mb-6">
+                This will remove all ingredients from the list. You can then add your own custom recipe. This action cannot be undone.
+              </p>
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  onClick={() => setShowClearConfirm(false)}
+                  className={cn(
+                    "rounded-lg px-4 py-2.5 text-sm font-medium transition-colors",
+                    "text-stone-600 bg-stone-100 hover:bg-stone-200",
+                    "dark:text-stone-300 dark:bg-stone-800 dark:hover:bg-stone-700"
+                  )}
+                  type="button"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleClearIngredients}
+                  className={cn(
+                    "rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors",
+                    "bg-red-600 text-white hover:bg-red-700",
+                    "dark:bg-red-600 dark:hover:bg-red-500"
+                  )}
+                  type="button"
+                >
+                  Clear All
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
