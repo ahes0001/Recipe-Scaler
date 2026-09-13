@@ -5,13 +5,15 @@ import { motion } from "framer-motion";
 import { Calculator as CalcIcon, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getDefaultBaseAmounts, getDefaultCosts } from "@/lib/recipe";
-import IngredientList from "./IngredientList";
+import IngredientList, { type CustomIngredient } from "./IngredientList";
 import SettingsPanel from "./SettingsPanel";
 
 const BASE_AMOUNTS_STORAGE_KEY = "bukhari-base-amounts-v1";
 const COSTS_STORAGE_KEY = "bukhari-costs-v1";
 const CALCULATE_COSTS_STORAGE_KEY = "bukhari-calculate-costs-v1";
+const CUSTOM_INGREDIENTS_STORAGE_KEY = "bukhari-custom-ingredients-v1";
 const LAMB_STORAGE_KEY = "bukhari-lamb-kg-v1";
+const DELETED_DEFAULTS_STORAGE_KEY = "bukhari-deleted-defaults-v1";
 
 interface CalculatorProps {
   settingsOpen: boolean;
@@ -50,6 +52,24 @@ export default function Calculator({ settingsOpen, onCloseSettings }: Calculator
     }
     return false;
   });
+  const [customIngredients, setCustomIngredients] = useState<CustomIngredient[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem(CUSTOM_INGREDIENTS_STORAGE_KEY);
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return [];
+  });
+  const [deletedDefaults, setDeletedDefaults] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem(DELETED_DEFAULTS_STORAGE_KEY);
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return [];
+  });
 
   useEffect(() => {
     try {
@@ -71,6 +91,18 @@ export default function Calculator({ settingsOpen, onCloseSettings }: Calculator
 
   useEffect(() => {
     try {
+      localStorage.setItem(CUSTOM_INGREDIENTS_STORAGE_KEY, JSON.stringify(customIngredients));
+    } catch {}
+  }, [customIngredients]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(DELETED_DEFAULTS_STORAGE_KEY, JSON.stringify(deletedDefaults));
+    } catch {}
+  }, [deletedDefaults]);
+
+  useEffect(() => {
+    try {
       localStorage.setItem(LAMB_STORAGE_KEY, lambKg);
     } catch {}
   }, [lambKg]);
@@ -86,9 +118,35 @@ export default function Calculator({ settingsOpen, onCloseSettings }: Calculator
     setCosts((prev) => ({ ...prev, [key]: isNaN(value) || value < 0 ? 0 : value }));
   }, []);
 
+  const handleAddCustom = useCallback((ing: CustomIngredient) => {
+    setCustomIngredients((prev) => [...prev, ing]);
+  }, []);
+
+  const handleChangeCustomBaseAmount = useCallback((id: string, value: number) => {
+    setCustomIngredients((prev) =>
+      prev.map((ing) => (ing.id === id ? { ...ing, baseAmount: isNaN(value) || value < 0 ? 0 : value } : ing))
+    );
+  }, []);
+
+  const handleChangeCustomCost = useCallback((id: string, value: number) => {
+    setCustomIngredients((prev) =>
+      prev.map((ing) => (ing.id === id ? { ...ing, costPerKg: isNaN(value) || value < 0 ? 0 : value } : ing))
+    );
+  }, []);
+
+  const handleDeleteCustom = useCallback((id: string) => {
+    setCustomIngredients((prev) => prev.filter((ing) => ing.id !== id));
+  }, []);
+
+  const handleDeleteDefault = useCallback((key: string) => {
+    setDeletedDefaults((prev) => [...prev, key]);
+  }, []);
+
   const handleReset = useCallback(() => {
     setBaseAmounts(getDefaultBaseAmounts());
     setCosts(getDefaultCosts());
+    setCustomIngredients([]);
+    setDeletedDefaults([]);
   }, []);
 
   return (
@@ -152,6 +210,9 @@ export default function Calculator({ settingsOpen, onCloseSettings }: Calculator
               baseAmounts={baseAmounts}
               costs={costs}
               calculateCosts={calculateCosts}
+              customIngredients={customIngredients}
+              onAddCustomIngredient={handleAddCustom}
+              deletedDefaults={deletedDefaults}
             />
           </motion.div>
         ) : (
@@ -173,6 +234,12 @@ export default function Calculator({ settingsOpen, onCloseSettings }: Calculator
         calculateCosts={calculateCosts}
         onToggleCalculateCosts={() => setCalculateCosts((v) => !v)}
         onReset={handleReset}
+        customIngredients={customIngredients}
+        onChangeCustomBaseAmount={handleChangeCustomBaseAmount}
+        onChangeCustomCost={handleChangeCustomCost}
+        onDeleteCustomIngredient={handleDeleteCustom}
+        deletedDefaults={deletedDefaults}
+        onDeleteDefaultIngredient={handleDeleteDefault}
       />
     </section>
   );
