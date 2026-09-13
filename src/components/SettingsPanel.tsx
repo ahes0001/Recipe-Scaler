@@ -23,6 +23,7 @@ interface SettingsPanelProps {
   onDeleteCustomIngredient: (id: string) => void;
   deletedDefaults: string[];
   onDeleteDefaultIngredient: (key: string) => void;
+  referenceKey: string;
 }
 
 export default function SettingsPanel({
@@ -41,6 +42,7 @@ export default function SettingsPanel({
   onDeleteCustomIngredient,
   deletedDefaults,
   onDeleteDefaultIngredient,
+  referenceKey,
 }: SettingsPanelProps) {
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -56,7 +58,7 @@ export default function SettingsPanel({
     if (!isOpen || !panelRef.current) return;
     const panel = panelRef.current;
     const focusable = panel.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])"
     );
     const first = focusable[0];
     const last = focusable[focusable.length - 1];
@@ -162,32 +164,34 @@ export default function SettingsPanel({
                 <div key={ing.key} className="rounded-lg border border-stone-100 p-3 dark:border-stone-800">
                   <div className="flex items-center justify-between gap-4 mb-2">
                     <div className="flex items-center gap-2">
-                      <label htmlFor={`amount-${ing.key}`} className="text-sm font-medium text-stone-700 dark:text-stone-200">
+                      <label htmlFor={"amount-" + ing.key} className="text-sm font-medium text-stone-700 dark:text-stone-200">
                         {ing.label}
                       </label>
-                      <button
-                        onClick={() => onDeleteDefaultIngredient(ing.key)}
-                        className={cn(
-                          "inline-flex h-6 w-6 items-center justify-center rounded-md transition-colors",
-                          "text-stone-400 hover:bg-red-100 hover:text-red-600",
-                          "dark:text-stone-500 dark:hover:bg-red-900/30 dark:hover:text-red-400"
-                        )}
-                        aria-label={`Delete ${ing.label}`}
-                        type="button"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
+                      {referenceKey !== ing.key && (
+                        <button
+                          onClick={() => onDeleteDefaultIngredient(ing.key)}
+                          className={cn(
+                            "inline-flex h-6 w-6 items-center justify-center rounded-md transition-colors",
+                            "text-stone-400 hover:bg-red-100 hover:text-red-600",
+                            "dark:text-stone-500 dark:hover:bg-red-900/30 dark:hover:text-red-400"
+                          )}
+                          aria-label={"Delete " + ing.label}
+                          type="button"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      )}
                     </div>
                     <div className="flex items-center gap-2">
                       <input
-                        id={`amount-${ing.key}`}
+                        id={"amount-" + ing.key}
                         type="number"
                         step="1"
                         min="0"
                         value={baseAmounts[ing.key] ?? ing.baseAmount}
                         onChange={(e) => onChangeBaseAmount(ing.key, parseFloat(e.target.value))}
                         className={inputClass}
-                        aria-label={`${ing.label} base amount`}
+                        aria-label={ing.label + " base amount"}
                       />
                       <span className="text-sm text-stone-500 dark:text-stone-400 w-8">{ing.unit}</span>
                     </div>
@@ -195,20 +199,20 @@ export default function SettingsPanel({
 
                   {calculateCosts && (
                     <div className="flex items-center justify-between gap-4 pl-4 border-l-2 border-emerald-200 dark:border-emerald-800">
-                      <label htmlFor={`cost-${ing.key}`} className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                      <label htmlFor={"cost-" + ing.key} className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
                         Cost per kg
                       </label>
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-stone-500 dark:text-stone-400">$</span>
                         <input
-                          id={`cost-${ing.key}`}
+                          id={"cost-" + ing.key}
                           type="number"
                           step="0.1"
                           min="0"
                           value={costs[ing.key] ?? ing.defaultCostPerKg}
                           onChange={(e) => onChangeCost(ing.key, parseFloat(e.target.value))}
                           className={cn(inputClass, "w-24")}
-                          aria-label={`${ing.label} cost per kilogram`}
+                          aria-label={ing.label + " cost per kilogram"}
                         />
                       </div>
                     </div>
@@ -223,18 +227,20 @@ export default function SettingsPanel({
                       <span className="text-sm font-medium text-stone-700 dark:text-stone-200">
                         {custom.label}
                       </span>
-                      <button
-                        onClick={() => onDeleteCustomIngredient(custom.id)}
-                        className={cn(
-                          "inline-flex h-6 w-6 items-center justify-center rounded-md transition-colors",
-                          "text-stone-400 hover:bg-red-100 hover:text-red-600",
-                          "dark:text-stone-500 dark:hover:bg-red-900/30 dark:hover:text-red-400"
-                        )}
-                        aria-label={`Delete ${custom.label}`}
-                        type="button"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
+                      {referenceKey !== custom.id && (
+                        <button
+                          onClick={() => onDeleteCustomIngredient(custom.id)}
+                          className={cn(
+                            "inline-flex h-6 w-6 items-center justify-center rounded-md transition-colors",
+                            "text-stone-400 hover:bg-red-100 hover:text-red-600",
+                            "dark:text-stone-500 dark:hover:bg-red-900/30 dark:hover:text-red-400"
+                          )}
+                          aria-label={"Delete " + custom.label}
+                          type="button"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      )}
                     </div>
                     <div className="flex items-center gap-2">
                       <input
@@ -244,7 +250,7 @@ export default function SettingsPanel({
                         value={custom.baseAmount}
                         onChange={(e) => onChangeCustomBaseAmount(custom.id, parseFloat(e.target.value))}
                         className={inputClass}
-                        aria-label={`${custom.label} base amount`}
+                        aria-label={custom.label + " base amount"}
                       />
                       <span className="text-sm text-stone-500 dark:text-stone-400 w-8">{custom.unit}</span>
                     </div>
@@ -264,7 +270,7 @@ export default function SettingsPanel({
                           value={custom.costPerKg}
                           onChange={(e) => onChangeCustomCost(custom.id, parseFloat(e.target.value))}
                           className={cn(inputClass, "w-24")}
-                          aria-label={`${custom.label} cost per kilogram`}
+                          aria-label={custom.label + " cost per kilogram"}
                         />
                       </div>
                     </div>

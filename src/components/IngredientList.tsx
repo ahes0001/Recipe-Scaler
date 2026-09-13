@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { INGREDIENTS, scaleIngredient, formatCost, BASE_LAMB_KG } from "@/lib/recipe";
+import { INGREDIENTS, formatCost } from "@/lib/recipe";
 import { cn } from "@/lib/utils";
 import IngredientItem from "./IngredientItem";
 
@@ -15,23 +15,27 @@ export interface CustomIngredient {
 }
 
 interface IngredientListProps {
-  lambKg: number;
+  scaleFactor: number;
   baseAmounts: Record<string, number>;
   costs: Record<string, number>;
   calculateCosts: boolean;
   customIngredients: CustomIngredient[];
   onAddCustomIngredient: (ing: CustomIngredient) => void;
   deletedDefaults: string[];
+  referenceKey: string;
+  onSetReference: (key: string) => void;
 }
 
 export default function IngredientList({
-  lambKg,
+  scaleFactor,
   baseAmounts,
   costs,
   calculateCosts,
   customIngredients,
   onAddCustomIngredient,
   deletedDefaults,
+  referenceKey,
+  onSetReference,
 }: IngredientListProps) {
   const [draftName, setDraftName] = useState("");
   const [draftAmount, setDraftAmount] = useState("");
@@ -40,7 +44,7 @@ export default function IngredientList({
   const visibleDefaults = INGREDIENTS.filter((ing) => !deletedDefaults.includes(ing.key));
 
   const predefinedItems = visibleDefaults.map((ing) => {
-    const amount = scaleIngredient(ing, lambKg, baseAmounts[ing.key] ?? ing.baseAmount);
+    const amount = (baseAmounts[ing.key] ?? ing.baseAmount) * scaleFactor;
     const cost = calculateCosts
       ? (amount / 1000) * (costs[ing.key] ?? ing.defaultCostPerKg)
       : undefined;
@@ -48,7 +52,7 @@ export default function IngredientList({
   });
 
   const customItems = customIngredients.map((custom) => {
-    const amount = custom.baseAmount * (lambKg / BASE_LAMB_KG);
+    const amount = custom.baseAmount * scaleFactor;
     const cost = calculateCosts ? (amount / 1000) * custom.costPerKg : undefined;
     return { id: custom.id, label: custom.label, amount, unit: custom.unit, cost };
   });
@@ -63,7 +67,7 @@ export default function IngredientList({
     if (!name || isNaN(amount) || amount < 0) return;
 
     const newIng: CustomIngredient = {
-      id: `custom-${Date.now()}`,
+      id: "custom-" + Date.now(),
       label: name,
       baseAmount: amount,
       unit: "g",
@@ -95,6 +99,8 @@ export default function IngredientList({
           isLamb={item.isLamb}
           cost={item.cost}
           index={idx}
+          isReference={item.key === referenceKey}
+          onClick={() => onSetReference(item.key)}
         />
       ))}
 
@@ -106,6 +112,8 @@ export default function IngredientList({
           unit={item.unit}
           cost={item.cost}
           index={predefinedItems.length + idx}
+          isReference={item.id === referenceKey}
+          onClick={() => onSetReference(item.id)}
         />
       ))}
 

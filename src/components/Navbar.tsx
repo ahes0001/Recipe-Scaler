@@ -30,7 +30,7 @@ export default function Navbar({ onOpenSettings }: NavbarProps) {
             aria-hidden="true"
           />
           <span className="text-lg font-bold tracking-tight text-stone-800 dark:text-stone-100">
-            Bukhari Spice
+            Kazan Um Ahmed
           </span>
         </div>
 
