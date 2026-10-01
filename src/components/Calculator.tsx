@@ -206,14 +206,14 @@ export default function Calculator({ settingsOpen, onCloseSettings }: Calculator
     setCustomIngredients([]);
     setDeletedDefaults([]);
     setReferenceKey("lamb");
-    setReferenceInput("3");
+    setReferenceInput("15");
   }, []);
 
   const displayValue = referenceInput;
   const displayUnit = isLambReference ? "kg" : "g";
   const displayLabel = isLambReference ? "Lamb weight" : referenceLabel + " amount";
   const displayHint = isLambReference
-    ? "Base recipe is calibrated for 3 kg of lamb."
+    ? "Base recipe is calibrated for 15 kg of lamb. Click any ingredient below to change."
     : "Recipe is balanced around " + referenceLabel + ". Click any ingredient below to change.";
 
 
