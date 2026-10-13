@@ -16,7 +16,7 @@ export interface Ingredient {
 export const BASE_LAMB_KG = 15;
 
 export const INGREDIENTS: Ingredient[] = [
-  { key: "lamb", label: "Lamb", baseAmount: 15000, unit: "g", defaultCostPerKg: 0 },
+  { key: "lamb", label: "Lamb", baseAmount: 15000, unit: "g", defaultCostPerKg: 90 },
   { key: "carrot", label: "Carrot", baseAmount: 3000, unit: "g", defaultCostPerKg: 3.34 },
   { key: "canned tomatoes", label: "Canned Tomatoes", baseAmount: 2800, unit: "g", defaultCostPerKg: 8.75 },
   { key: "tomato_paste", label: "Tomato Paste", baseAmount: 405, unit: "g", defaultCostPerKg: 10 },
@@ -25,17 +25,17 @@ export const INGREDIENTS: Ingredient[] = [
   { key: "slivered_almounds", label: "Slivered Almounds", baseAmount: 1000, unit: "g", defaultCostPerKg: 45 },
   { key: "ground_cumin", label: "Ground Cumin", baseAmount: 50, unit: "g", defaultCostPerKg: 45 },
   { key: "big_onions", label: "Big Onions (total)", baseAmount: 2000, unit: "g", defaultCostPerKg: 2 },
-  { key: "large_green_chilies", label: "Large Chilies (total)", baseAmount: 150, unit: "g", defaultCostPerKg: 6 },
-  { key: "lamb_tallow", label: "Lamb Tallow", baseAmount: 0.6, unit: "g", defaultCostPerKg: 0 },
+  { key: "lamb_tallow", label: "Lamb Tallow", baseAmount: 100, unit: "g", defaultCostPerKg: 50 },
   { key: "yogurt", label: "Yogurt", baseAmount: 1000, unit: "g", defaultCostPerKg: 8 },
-  { key: "salt", label: "Salt", baseAmount: 50, unit: "g", defaultCostPerKg: 3 },
+  { key: "salt", label: "Salt", baseAmount: 100, unit: "g", defaultCostPerKg: 5 },
   { key: "water", label: "Water", baseAmount: 10000, unit: "g", defaultCostPerKg: 0.44 },
-  { key: "cucumber", label: "Cucumber", baseAmount: 500, unit: "g", defaultCostPerKg:0 },
-  { key: "mint", label: "Mint", baseAmount: 50, unit: "g", defaultCostPerKg:0  },
-  { key: "corriender", label: "Coriander", baseAmount: 50, unit: "g", defaultCostPerKg:0  },
-  { key: "tomato", label: "Tomato", baseAmount: 500, unit: "g", defaultCostPerKg:0 },
-  { key: "black_pepper", label: "Black Pepper", baseAmount: 10, unit: "g", defaultCostPerKg:0  },
-  { key: "lemon", label: "Lemon", baseAmount: 10, unit: "g", defaultCostPerKg:0  },
+  { key: "cucumber", label: "Cucumber", baseAmount: 500, unit: "g", defaultCostPerKg:5 },
+  { key: "mint", label: "Mint", baseAmount: 100, unit: "g", defaultCostPerKg:10  }, 
+  { key: "black_pepper", label: "Black Pepper", baseAmount: 100, unit: "g", defaultCostPerKg:5  },
+  { key: "bags and containers", label: "bags and containers", baseAmount: 1500, unit: "g", defaultCostPerKg:30  },
+  { key: "gas", label: "gas", baseAmount: 125, unit: "g", defaultCostPerKg:40},
+  // +12.5 for meat delivery
+  { key: "rice", label: "rice", baseAmount: 7000, unit: "g", defaultCostPerKg: 6.4 }
 ];
 
 /** Build a map of the original base amounts for every ingredient. */
